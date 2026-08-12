@@ -61,7 +61,7 @@ def main():
 
     else:
         while True:
-            video_type = input("Do you want to create a Short or a regular video? (Enter 'short' or 'video'): ")
+            video_type = os.getenv("VIDEO_TYPE", "short").lower()
             duration_minutes = float(input("Enter the duration for the video (in minutes): "))
             video_query = input("Enter the search query for the Pixabay video: ")
             audio_query = input("Enter the search query for the Freesound music: ")
