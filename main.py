@@ -1,6 +1,7 @@
 import sys
 sys.dont_write_bytecode = True
 import json
+import os
 from lib.content_handler import search_and_download_meditation_video, search_and_download_music, load_used_content, save_used_content
 from lib.video_processing import combine_audio_video
 from lib.youtube_upload import upload_to_youtube, refresh_token
