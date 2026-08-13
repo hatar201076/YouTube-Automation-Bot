@@ -86,14 +86,21 @@ def main():
         if video_url:
             used_content['videos'].append(video_url)
         else:
-            print(f"Warning: Could not download video for query '{video_query}'")
+            print(f"Error: Gagal mengunduh video untuk query '{video_query}'")
 
         # 3. Download Audio
         audio_url, attribution_text = search_and_download_music(audio_query, used_content['audios'])
         if audio_url:
             used_content['audios'].append(audio_url)
         else:
-            print(f"Warning: Could not download audio for query '{audio_query}'")
+            print(f"Error: Gagal mengunduh audio untuk query '{audio_query}'")
+
+        # --- VALIDASI PENTING ---
+        # Pastikan kedua file benar-benar ada di disk sebelum memanggil MoviePy
+        if not os.path.exists("video.mp4") or not os.path.exists("music.mp3"):
+            print("❌ Proses dibatalkan: File video.mp4 atau music.mp3 tidak ditemukan.")
+            print("Periksa kembali API Key atau kata kunci pencarian (VIDEO_QUERY / AUDIO_QUERY) di Railway Variables.")
+            return  # Hentikan eksekusi main()
 
         # 4. Simpan history konten terpakai
         save_used_content(used_content)
