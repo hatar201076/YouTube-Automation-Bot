@@ -11,6 +11,7 @@ from lib.config import load_config
 def main():
     used_content = load_used_content()
 
+    # --- MODE 1: OTO-MODE VIA FILE auto.json (--auto) ---
     if '--auto' in sys.argv:
         with open('auto.json', 'r') as f:
             config = json.load(f)
@@ -60,57 +61,55 @@ def main():
             if not video_created:
                 print("All video configurations have been processed or none were successful.")
 
+    # --- MODE 2: MODE NON-INTERAKTIF UNTUK RAILWAY (Membaca dari Environment Variables) ---
     else:
-        while True:
-            video_type = os.getenv("VIDEO_TYPE", "short").lower()
-            duration_minutes = float(input("Enter the duration for the video (in minutes): "))
-            video_query = input("Enter the search query for the Pixabay video: ")
-            audio_query = input("Enter the search query for the Freesound music: ")
-            is_short = video_type == 'short'
-            
-            video_url = search_and_download_meditation_video(used_content['videos'], video_query)
-            if video_url:
-                used_content['videos'].append(video_url)
+        print("Running in automated cloud mode (Railway/Non-interactive)...")
+        
+        # 1. Ambil variabel dari Environment Variable Railway (atau gunakan default)
+        video_type = os.getenv("VIDEO_TYPE", "short").lower()
+        
+        try:
+            duration_minutes = float(os.getenv("VIDEO_DURATION", "1.0"))
+        except ValueError:
+            duration_minutes = 1.0
 
-            audio_url, attribution_text = search_and_download_music(audio_query, used_content['audios'])
-            if audio_url:
-                used_content['audios'].append(audio_url)
+        video_query = os.getenv("VIDEO_QUERY", "nature meditation")
+        audio_query = os.getenv("AUDIO_QUERY", "relaxing rain")
+        upload_choice = os.getenv("UPLOAD_YOUTUBE", "yes").lower()
 
-            while True:
-                user_input = input("\nReview the downloaded video and music. Please select an option. \n1) Proceed to making the final video \n2) Download a new video \n3) Download new music \n4) Download a new video and music\n").lower()
+        is_short = (video_type == 'short')
 
-                if user_input == '1':
-                    break
-                elif user_input == '2':
-                    video_url = search_and_download_meditation_video(used_content['videos'])
-                    if video_url:
-                        used_content['videos'].append(video_url)
-                elif user_input == '3':
-                    audio_url, attribution_text = search_and_download_music("rain thunder", used_content['audios'])
-                    if audio_url:
-                        used_content['audios'].append(audio_url)
-                elif user_input == '4':
-                    video_url = search_and_download_meditation_video(used_content['videos'])
-                    if video_url:
-                        used_content['videos'].append(video_url)
-                    audio_url, attribution_text = search_and_download_music("rain thunder", used_content['audios'])
-                    if audio_url:
-                        used_content['audios'].append(audio_url)
+        print(f"Config: Type={video_type}, Duration={duration_minutes}m, Video Query='{video_query}', Audio Query='{audio_query}'")
 
-            save_used_content(used_content)
+        # 2. Download Video
+        video_url = search_and_download_meditation_video(used_content['videos'], video_query)
+        if video_url:
+            used_content['videos'].append(video_url)
+        else:
+            print(f"Warning: Could not download video for query '{video_query}'")
 
-            metadata = generate_metadata(video_query, duration_minutes, attribution=attribution_text, is_short=is_short)
+        # 3. Download Audio
+        audio_url, attribution_text = search_and_download_music(audio_query, used_content['audios'])
+        if audio_url:
+            used_content['audios'].append(audio_url)
+        else:
+            print(f"Warning: Could not download audio for query '{audio_query}'")
 
-            combine_audio_video("video.mp4", "music.mp3", "final_video.mp4", duration_minutes=duration_minutes, is_short=is_short)
+        # 4. Simpan history konten terpakai
+        save_used_content(used_content)
 
-            upload_choice = input("Do you want to upload the video to YouTube? (yes/no): ").lower()
-            if upload_choice == 'yes':
-                refresh_token()
-                upload_to_youtube("final_video.mp4", metadata, is_short=is_short)
+        # 5. Generate Metadata & Proses Penggabungan Video
+        metadata = generate_metadata(video_query, duration_minutes, attribution=attribution_text, is_short=is_short)
+        combine_audio_video("video.mp4", "music.mp3", "final_video.mp4", duration_minutes=duration_minutes, is_short=is_short)
 
-            repeat = input("Do you want to create another video? (yes/no): ").lower()
-            if repeat != 'yes':
-                break
+        # 6. Upload ke YouTube jika diizinkan
+        if upload_choice in ['yes', 'true', '1']:
+            print("Uploading final video to YouTube...")
+            refresh_token()
+            upload_to_youtube("final_video.mp4", metadata, is_short=is_short)
+            print("Upload completed!")
+        else:
+            print("Skipping YouTube upload based on configuration.")
 
 if __name__ == "__main__":
     main()
