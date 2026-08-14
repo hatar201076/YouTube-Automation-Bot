@@ -2,6 +2,9 @@ import sys
 sys.dont_write_bytecode = True
 import json
 import os
+import PIL.Image
+if not hasattr(PIL.Image, 'ANTIALIAS'):
+    PIL.Image.ANTIALIAS = PIL.Image.LANCZOS
 import moviepy
 from lib.content_handler import search_and_download_meditation_video, search_and_download_music, load_used_content, save_used_content
 from lib.video_processing import combine_audio_video
