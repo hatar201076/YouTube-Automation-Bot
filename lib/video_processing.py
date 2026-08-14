@@ -24,17 +24,23 @@ def combine_audio_video(video_file, audio_file, output_file, duration_minutes=60
     video_loop = concatenate_videoclips([video] * (duration_seconds // int(video.duration) + 1)).subclip(0, duration_seconds)
     audio_looped = audio_loop(audio, duration=duration_seconds)
     
+# 4 spasi dari pinggir kiri
+    audio_looped = audio_looped.subclip(0, video_loop.duration)
     final_video = video_loop.set_audio(audio_looped)
-    final_video.write_videofile(
-    output_file,
-    codec='libx264',
-    audio_codec='aac',
-    fps=24,                  # Memaksa FPS tetap stabil
-    preset='ultrafast',      # Meringankan beban CPU & RAM Railway
-    threads=2,               # Mencegah FFmpeg crash karena kehabisan RAM
-    ffmpeg_params=['-pix_fmt', 'yuv420p'] # Format piksel standar YouTube/browser
-)
 
-    video.close()
-    audio.close()
+    # Render video
+    final_video.write_videofile(
+        output_file,
+        codec='libx264',
+        audio_codec='aac',
+        fps=24,
+        preset='ultrafast',
+        threads=2,
+        ffmpeg_params=['-pix_fmt', 'yuv420p'],
+        logger=None
+    )
+
+    # 4 spasi dari pinggir kiri
     final_video.close()
+    audio_looped.close()
+    video_loop.close()
