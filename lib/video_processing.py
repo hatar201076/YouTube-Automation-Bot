@@ -25,7 +25,15 @@ def combine_audio_video(video_file, audio_file, output_file, duration_minutes=60
     audio_looped = audio_loop(audio, duration=duration_seconds)
     
     final_video = video_loop.set_audio(audio_looped)
-    final_video.write_videofile(output_file, codec='libx264', audio_codec='aac')
+    final_video.write_videofile(
+    output_file,
+    codec='libx264',
+    audio_codec='aac',
+    fps=24,                  # Memaksa FPS tetap stabil
+    preset='ultrafast',      # Meringankan beban CPU & RAM Railway
+    threads=2,               # Mencegah FFmpeg crash karena kehabisan RAM
+    ffmpeg_params=['-pix_fmt', 'yuv420p'] # Format piksel standar YouTube/browser
+)
 
     video.close()
     audio.close()
