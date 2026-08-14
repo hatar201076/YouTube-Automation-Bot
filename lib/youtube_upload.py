@@ -10,12 +10,12 @@ from lib.config import SCOPES
 
 def refresh_token():
     if not os.path.exists('client_secrets.json') and os.environ.get('CLIENT_SECRETS_JSON'):
-    with open('client_secrets.json', 'w') as f:
-        f.write(os.environ.get('CLIENT_SECRETS_JSON'))
+        with open('client_secrets.json', 'w') as f:
+            f.write(os.environ.get('CLIENT_SECRETS_JSON'))
 
-if not os.path.exists('token.json') and os.environ.get('TOKEN_JSON'):
-    with open('token.json', 'w') as f:
-        f.write(os.environ.get('TOKEN_JSON'))
+    if not os.path.exists('token.json') and os.environ.get('TOKEN_JSON'):
+        with open('token.json', 'w') as f:
+            f.write(os.environ.get('TOKEN_JSON'))
     creds = None
     token_path = 'token.json'
     client_secrets_path = 'client_secrets.json'
